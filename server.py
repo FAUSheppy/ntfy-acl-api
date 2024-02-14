@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
+import flask
 import subprocess
 import os
+import token
 import sys
 import time
 
@@ -28,18 +30,23 @@ def access_and_user():
     if not user or not topic:
         return jsonify({'error': 'User and topic are required'}), 400
 
+    password = flask.request.args.get("password")
+    if not password:
+        return jsonify({'error': 'Missing password for user'}), 400
+
     if flask.request.method == "PUT":
 
         # create user #
         cp = subprocess.run(['ntfy', 'user', "add", user], env={"NTFY_PASSWORD" : password})
-        if cp.return_code == 1:
-            print("User {} already exists - ignoring..".format(user))
+        if cp.returncode == 1:
+            print("User {} already exists - ignoring..".format(user), file=sys.stderr)
 
         # set topic access #
-        subprocess.run(['ntfy', 'access', user, topic, 'r'], check=True)
+        subprocess.run(['ntfy', 'access', user, topic, 'ro'], check=True)
 
     if flask.request.method == "DELETE":
-        subprocess.run(['ntfy', 'access', "--reset", user, topic], check=True, env={"NTFY_PASSWORD" : password})
+        subprocess.run(['ntfy', 'access', "--reset", user, topic], check=True)
+        subprocess.run(['ntfy', 'user', "remove", user], check=True)
 
     return jsonify({'message': 'Command executed successfully'}), 200
 
@@ -86,12 +93,16 @@ def create_app():
             time.sleep(5)
         elif ret.returncode == 1 and "already exists" in ret.stderr.decode():
             print("Admin user already exists - continue...", file=sys.stderr)
-            break
+            return
         elif ret.returncode != 0:
             print("WARNING:", ret.stderr.decode(), ret.stdout.decode(), file=sys.stderr)
             time.sleep(5)
         else:
-            break
+            return
+
+    # -- something went wrong -- #
+    print("Failed to start - see output. Probably ntfy server didn't start or mounts are wrong", file=sys.stderr)
+    sys.exit(1)
 
 if __name__ == '__main__':
     app.run(debug=True)
