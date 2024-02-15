@@ -5,6 +5,8 @@ import os
 import token
 import sys
 import time
+import string
+import random
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Boolean, or_, and_, asc, desc
 
@@ -46,7 +48,7 @@ def topic_route():
     user = request.args.get("user")
 
     if request.method == 'GET':
-        topic = db.session.query(UserTopic).filter_by(user=user).first()
+        topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
         if topic:
             return jsonify({'user': topic.user, 'topic': topic.topic})
         else:
@@ -54,20 +56,20 @@ def topic_route():
 
     elif request.method == 'PUT':
 
-        topic = db.session.query(UserTopic).filter_by(user=user).first()
+        topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
 
         if topic:
             return jsonify({'message': 'Topic already exists'}), 409
         else:
-            topic = db.session.query(UserTopic).filter(user=user, topic=_alphanumeric_topic_name())
-            subprocess.run(['ntfy', 'access', "everyone", topic, "ro"], check=True)
+            topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
+            subprocess.run(['ntfy', 'access', "everyone", topic.topic, "ro"], check=True)
             db.session.add(topic)
 
         db.session.commit()
         return jsonify({'user': topic.user, 'topic': topic.topic})
 
     elif request.method == 'DELETE':
-        topic = db.session.query(UserTopic).filter_by(user=user).first()
+        topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
         if topic:
             db.session.delete(topic)
             subprocess.run(['ntfy', 'access', "--reset", "everyone", topic], check=True)
