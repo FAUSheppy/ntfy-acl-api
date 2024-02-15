@@ -54,7 +54,7 @@ def topic_route():
 
     elif request.method == 'PUT':
 
-        topic_opj = db.session.query(UserTopic).filter_by(user=user).first()
+        topic = db.session.query(UserTopic).filter_by(user=user).first()
 
         if topic:
             return jsonify({'message': 'Topic already exists'}), 409
@@ -118,6 +118,8 @@ def access_and_user():
     return jsonify({'message': 'Command executed successfully'}), 200
 
 def create_app():
+
+    db.create_all()
 
     app.config["ACCESS_TOKEN"] = os.getenv('ACCESS_TOKEN')
     if not app.config["ACCESS_TOKEN"]:
