@@ -48,7 +48,7 @@ def topic_route():
     user = request.args.get("user")
 
     if request.method == 'GET':
-        topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
+        topic = db.session.query(UserTopic).filter(UserTopic.user==user).first()
         if topic:
             return jsonify({'user': topic.user, 'topic': topic.topic})
         else:
@@ -56,12 +56,12 @@ def topic_route():
 
     elif request.method == 'PUT':
 
-        topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
+        topic = db.session.query(UserTopic).filter(UserTopic.user==user).first()
 
         if topic:
             return jsonify({'message': 'Topic already exists'}), 409
         else:
-            topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
+            topic = db.session.query(UserTopic).filter(UserTopic.user==user).first()
             subprocess.run(['ntfy', 'access', "everyone", topic.topic, "ro"], check=True)
             db.session.add(topic)
 
@@ -69,7 +69,7 @@ def topic_route():
         return jsonify({'user': topic.user, 'topic': topic.topic})
 
     elif request.method == 'DELETE':
-        topic = db.session.query(UserTopic).filter(UserTopic.user=user).first()
+        topic = db.session.query(UserTopic).filter(UserTopic.user==user).first()
         if topic:
             db.session.delete(topic)
             subprocess.run(['ntfy', 'access', "--reset", "everyone", topic], check=True)
