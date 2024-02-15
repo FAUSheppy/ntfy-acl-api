@@ -5,10 +5,69 @@ import os
 import token
 import sys
 import time
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String, Boolean, or_, and_, asc, desc
 
 app = Flask("NTFY HTTP API")
 
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLITE_LOCATION") or "sqlite:///sqlite.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
 SERVER_CONFIG_FILE = "/etc/ntfy/server.yml"
+
+def _alphanumeric_topic_name(length=20):
+    '''Generate an alphanumeric topic name which starts with a letter'''
+
+    both = string.ascii_letters + string.digits
+    random_string = random.choice(string.ascii_letters)
+    random_string += ''.join(random.choices(both, k=length))
+    return random_string
+
+class UserTopic(db.Model):
+
+    __tablename__ = 'topics'
+
+    user = Column(String, primary_key=True)
+    topic = Column(String)
+
+@app.route('/topic', methods=['GET', 'PUT', 'DELETE'])
+def access_and_user():
+    '''Manage and query hidden topics instead of password ACLs'''
+
+    user = request.args.get("user")
+
+    if request.method == 'GET':
+        topic = Topic.query.filter_by(user=user).first()
+        if topic:
+            return jsonify({'user': topic.user, 'topic': topic.topic})
+        else:
+            return jsonify({'message': 'Topic not found'}), 404
+
+    elif request.method == 'PUT':
+
+        topic_opj = Topic.query.filter_by(user=user).first()
+
+        if topic:
+            return jsonify({'message': 'Topic already exists'}), 409
+        else:
+            topic = Topic(user=user, topic=_alphanumeric_topic_name())
+            subprocess.run(['ntfy', 'access', "everyone", topic, "ro"], check=True)
+            db.session.add(topic)
+
+        db.session.commit()
+        return jsonify({'user': topic.user, 'topic': topic.topic})
+
+    elif request.method == 'DELETE':
+        topic = Topic.query.filter_by(user=user).first()
+        if topic:
+            db.session.delete(topic)
+            subprocess.run(['ntfy', 'access', "--reset", "everyone", topic], check=True)
+            db.session.commit()
+            return jsonify({'message': 'Topic deleted successfully'})
+        else:
+            return jsonify({'message': 'Topic not found'}), 404
+
 
 @app.route('/access-and-user', methods=['PUT', "DELETE"])
 def access_and_user():
