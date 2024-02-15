@@ -32,7 +32,7 @@ class UserTopic(db.Model):
     topic = Column(String)
 
 @app.route('/topic', methods=['GET', 'PUT', 'DELETE'])
-def access_and_user():
+def topic_route():
     '''Manage and query hidden topics instead of password ACLs'''
 
     # Get the token from the environment variable
