@@ -61,7 +61,7 @@ def topic_route():
         if topic:
             return jsonify({'message': 'Topic already exists'}), 409
         else:
-            topic = db.session.query(UserTopic).filter(UserTopic.user==user).first()
+            topic = UserTopic(user=user, topic=_alphanumeric_topic_name())
             subprocess.run(['ntfy', 'access', "everyone", topic.topic, "ro"], check=True)
             db.session.add(topic)
 
@@ -71,8 +71,8 @@ def topic_route():
     elif request.method == 'DELETE':
         topic = db.session.query(UserTopic).filter(UserTopic.user==user).first()
         if topic:
+            subprocess.run(['ntfy', 'access', "--reset", "everyone", topic.topic], check=True)
             db.session.delete(topic)
-            subprocess.run(['ntfy', 'access', "--reset", "everyone", topic], check=True)
             db.session.commit()
             return jsonify({'message': 'Topic deleted successfully'})
         else:
