@@ -35,6 +35,14 @@ class UserTopic(db.Model):
 def access_and_user():
     '''Manage and query hidden topics instead of password ACLs'''
 
+    # Get the token from the environment variable
+    token = os.getenv('ACCESS_TOKEN')
+
+    # Check if the token is provided in the request
+    provided_token = request.args.get('token')
+    if not provided_token or provided_token != token:
+        return jsonify({'error': 'Invalid token'}), 401
+
     user = request.args.get("user")
 
     if request.method == 'GET':
