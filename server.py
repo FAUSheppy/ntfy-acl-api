@@ -166,7 +166,8 @@ def create_app():
             print("Admin user already exists - continue...", file=sys.stderr)
             return
         elif ret.returncode != 0:
-            print("WARNING:", ret.stderr.decode(), ret.stdout.decode(), file=sys.stderr)
+                print("Error during ntfy command: stder: {} \nstdout: {}".format(
+                        ret.stderr.decode().strip(), ret.stdout.decode().strip()), file=sys.stderr)
             time.sleep(5)
         else:
             return
