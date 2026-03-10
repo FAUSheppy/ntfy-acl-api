@@ -130,8 +130,13 @@ def create_app():
 
     # need to write this to /etc/ntfy/server.yaml as "auth-file" #
     auth_file = os.getenv("NTFY_AUTH_FILE")
-    if not auth_file:
-        print("Missing NTFY_AUTH_FILE environment variable", file=sys.stderr)
+    auth_db = os.getenv("NTFY_AUTH_DB_URL")
+
+    if not auth_file and not auth_db:
+        print("Missing NTFY_AUTH_FILE or NTFY_AUTH_DB_URL environment variable", file=sys.stderr)
+        sys.exit(1)
+    elif auth_file and auth_db:
+        print("NTFY_AUTH_FILE are NTFY_AUTH_DB_URL are mutally exclusive options", file=sys.stderr)
         sys.exit(1)
 
     # check if already set / create file #
@@ -141,7 +146,14 @@ def create_app():
             for l in f:
                 if l.strip().startswith("#"):
                     continue
-                if "auth-file" in l and l.split("auth-file")[1].strip():
+
+                if auth_file:
+                    if "auth-file" in l and l.split("auth-file")[1].strip():
+                        auth_file_already_set = True
+                        break
+
+                if auth_db:
+                    if "database-url" in l and l.split("database-url")[1].strip():
                         auth_file_already_set = True
                         break
     else:
@@ -149,7 +161,12 @@ def create_app():
 
     # if not set, add it at the end #
     with open(SERVER_CONFIG_FILE, "a") as f:
-        f.write("\nauth-file: {}\n".format(auth_file))
+
+        if auth_file:
+            f.write("\nauth-file: {}\n".format(auth_file))
+        if auth_db:
+            f.write("\database-url: {}\n".format(auth_db))
+
 
     passenv = {"NTFY_PASSWORD" : app.config["ACCESS_TOKEN"]}
 
