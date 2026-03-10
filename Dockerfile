@@ -1,6 +1,6 @@
 FROM binwiederhier/ntfy
 RUN apk add py3-pip py3-flask py3-waitress
-RUN apk add py3-sqlalchemy
+RUN apk add py3-sqlalchemy py3-psycopg2
 RUN pip install --break-system-packages flask-sqlalchemy
 RUN mkdir /app
 WORKDIR /app
