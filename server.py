@@ -165,7 +165,7 @@ def create_app():
         if auth_file:
             f.write("\nauth-file: {}\n".format(auth_file))
         if auth_db:
-            f.write("\database-url: {}\n".format(auth_db))
+            f.write("\ndatabase-url: {}\n".format(auth_db))
 
 
     passenv = {"NTFY_PASSWORD" : app.config["ACCESS_TOKEN"]}
