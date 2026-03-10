@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String, Boolean, or_, and_, asc, desc
 
 app = Flask("NTFY HTTP API")
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DB_URL") or "sqlite:///sqlite.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL") or "sqlite:///sqlite.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -160,12 +160,12 @@ def create_app():
         os.makedirs("/etc/ntfy", exist_ok=True)
 
     # if not set, add it at the end #
-    with open(SERVER_CONFIG_FILE, "a") as f:
-
-        if auth_file:
-            f.write("\nauth-file: {}\n".format(auth_file))
-        if auth_db:
-            f.write("\ndatabase-url: {}\n".format(auth_db))
+    if not auth_file_already_set:
+        with open(SERVER_CONFIG_FILE, "a") as f:
+            if auth_file:
+                f.write("\nauth-file: {}\n".format(auth_file))
+            if auth_db:
+                f.write("\ndatabase-url: {}\n".format(auth_db))
 
 
     passenv = {"NTFY_PASSWORD" : app.config["ACCESS_TOKEN"]}
