@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String, Boolean, or_, and_, asc, desc
 
 app = Flask("NTFY HTTP API")
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLITE_LOCATION") or "sqlite:///sqlite.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DB_URL") or "sqlite:///sqlite.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
