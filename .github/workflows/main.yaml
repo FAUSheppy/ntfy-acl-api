@@ -1,5 +1,4 @@
 name: Container Build for atlantis-nfty-api
-
 on:
   push:
     branches:
